@@ -21,7 +21,8 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            overflow: hidden;
+            overflow: auto;
+            padding: 10px;
         }
 
         .game-wrapper {
@@ -29,21 +30,26 @@
             flex-direction: column;
             align-items: center;
             gap: 15px;
+            width: 100%;
+            max-width: 800px;
         }
 
         .game-container {
             position: relative;
-            width: 800px;
+            width: 100%;
+            max-width: 800px;
             height: 400px;
             border: 4px solid #eab308;
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 10px 25px rgba(234, 179, 8, 0.3);
-            background: #000;
+            background: #2b1307;
         }
 
         canvas {
             display: block;
+            width: 100%;
+            height: 100%;
         }
 
         .ui-panel {
@@ -114,16 +120,18 @@
         .mobile-controls {
             display: flex;
             justify-content: space-between;
-            width: 800px;
-            background: rgba(30, 41, 59, 0.5);
-            padding: 12px;
+            width: 100%;
+            max-width: 800px;
+            background: rgba(30, 41, 59, 0.9);
+            padding: 15px;
             border-radius: 8px;
-            border: 1px solid rgba(234, 179, 8, 0.3);
+            border: 2px solid rgba(234, 179, 8, 0.5);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
         }
 
         .control-group {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             align-items: center;
         }
 
@@ -131,10 +139,10 @@
             background: #eab308;
             border: none;
             color: #0f172a;
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             font-weight: bold;
-            width: 50px;
-            height: 50px;
+            width: 55px;
+            height: 55px;
             border-radius: 8px;
             cursor: pointer;
             display: flex;
@@ -151,15 +159,14 @@
 
         .action-group {
             display: flex;
-            gap: 12px;
+            gap: 10px;
         }
 
         .ctrl-btn.action {
             background: #ef4444;
             color: #fff;
-            width: 80px;
+            width: 75px;
             font-size: 0.95rem;
-            border-radius: 8px;
         }
 
         .ctrl-btn.action:active {
@@ -172,26 +179,26 @@
     <div class="game-wrapper">
         <div class="game-container">
             <div class="ui-panel">
-                <span id="hud-score">Bandeirinhas: 0</span>
-                <span id="hud-phase">Fase: 1 - O Sertão Seco</span>
+                <span id="hud-score">Pontos: 0</span>
+                <span id="hud-phase">Fase: 1</span>
                 <span id="hud-lives">Vidas: 3</span>
             </div>
 
             <div id="start-screen" class="screen-overlay">
                 <h1>Aventura no Agreste</h1>
-                <p>Ajude Lampião a saltar os obstáculos, atirar, lançar granadas e coletar bandeirinhas com som integrado!</p>
+                <p>Destrua os cactos com tiros e granadas para ganhar pontos extras, salte com pulo duplo e colete as bandeiras!</p>
                 <button class="btn" onclick="startGame()">Iniciar Forró</button>
             </div>
 
             <div id="gameover-screen" class="screen-overlay hidden">
                 <h1>Oxente! Game Over</h1>
                 <p>Lampião não resistiu aos perigos do sertão.</p>
-                <button class="btn" onclick="restartGame()">Tentar de Novo</button>
+                <button class="btn" onclick="restartGame()">Reiniciar Fase</button>
             </div>
 
             <div id="win-screen" class="screen-overlay hidden">
-                <h1>Arretado! Você Venceu!</h1>
-                <p>Todas as fases foram concluídas com sucesso!</p>
+                <h1>Arretado! Campeão!</h1>
+                <p>Você concluiu todas as fases com maestria!</p>
                 <button class="btn" onclick="restartGame()">Jogar Novamente</button>
             </div>
 
@@ -203,7 +210,6 @@
                 <button class="ctrl-btn" id="btn-left">◀</button>
                 <button class="ctrl-btn" id="btn-right">▶</button>
                 <button class="ctrl-btn" id="btn-up">▲</button>
-                <button class="ctrl-btn" id="btn-down">▼</button>
             </div>
             <div class="action-group">
                 <button class="ctrl-btn action" id="btn-shoot">Tiro</button>
@@ -213,10 +219,6 @@
     </div>
 
     <script>
-       const playerImg = new Image();
-         playerImg.src = 'data:image/png;base64,codornaparado.png';
-        
-        // Sistema de Áudio Sintetizado (Web Audio API)
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         const soundEffects = {
@@ -233,6 +235,20 @@
                 gain.connect(audioCtx.destination);
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.15);
+            },
+            doubleJump: () => {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.2);
             },
             shoot: () => {
                 if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -264,7 +280,6 @@
             },
             explosion: () => {
                 if (audioCtx.state === 'suspended') audioCtx.resume();
-                // Ruído branco para explosão realista
                 const bufferSize = audioCtx.sampleRate * 0.4;
                 const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
                 const data = buffer.getChannelData(0);
@@ -312,15 +327,16 @@
 
         const player = {
             x: 100,
-            y: 270,
+            y: 260,
             width: 45,
-            height: 70,
-            vx: 0,
+            height: 80,
             vy: 0,
             speed: 5,
-            gravity: 0.8,
-            jumpForce: -13,
+            gravity: 0.75,
+            jumpForce: -12,
+            doubleJumpForce: -11,
             isJumping: false,
+            canDoubleJump: false,
             facing: 'right'
         };
 
@@ -329,12 +345,6 @@
         let bullets = [];
         let grenades = [];
         let frameCount = 0;
-
-        const phaseNames = {
-            1: "1 - O Sertão Seco",
-            2: "2 - A Noite de São João",
-            3: "3 - O Forró da Cidade"
-        };
 
         const keys = { left: false, right: false };
 
@@ -371,10 +381,17 @@
         document.getElementById('btn-grenade').addEventListener('click', throwGrenade);
 
         function jump() {
-            if (gameState === 'PLAYING' && !player.isJumping) {
+            if (gameState !== 'PLAYING') return;
+
+            if (!player.isJumping) {
                 player.vy = player.jumpForce;
                 player.isJumping = true;
+                player.canDoubleJump = true;
                 soundEffects.jump();
+            } else if (player.canDoubleJump) {
+                player.vy = player.doubleJumpForce;
+                player.canDoubleJump = false;
+                soundEffects.doubleJump();
             }
         }
 
@@ -382,7 +399,7 @@
             if (gameState !== 'PLAYING') return;
             bullets.push({
                 x: player.facing === 'right' ? player.x + player.width : player.x - 15,
-                y: player.y + 25,
+                y: player.y + 30,
                 vx: player.facing === 'right' ? 10 : -10,
                 width: 12,
                 height: 4
@@ -413,8 +430,17 @@
         function restartGame() {
             document.getElementById('gameover-screen').classList.add('hidden');
             document.getElementById('win-screen').classList.add('hidden');
-            resetValues();
+            lives = 3;
+            score = (phase === 2) ? 1000 : (phase === 3 ? 1500 : 0);
+            player.x = 100;
+            player.y = 260;
+            obstacles = [];
+            collectibles = [];
+            bullets = [];
+            grenades = [];
             gameState = 'PLAYING';
+            updateHUD();
+            loop();
         }
 
         function resetValues() {
@@ -423,8 +449,10 @@
             phase = 1;
             gameSpeed = 4;
             player.x = 100;
-            player.y = 270;
+            player.y = 260;
             player.vy = 0;
+            player.isJumping = false;
+            player.canDoubleJump = false;
             obstacles = [];
             collectibles = [];
             bullets = [];
@@ -434,29 +462,30 @@
         }
 
         function updateHUD() {
-            document.getElementById('hud-score').innerText = `Bandeirinhas: ${score}`;
-            document.getElementById('hud-phase').innerText = `Fase: ${phaseNames[phase]}`;
+            document.getElementById('hud-score').innerText = `Pontos: ${score}`;
+            document.getElementById('hud-phase').innerText = `Fase: ${phase}`;
             document.getElementById('hud-lives').innerText = `Vidas: ${lives}`;
         }
 
         function spawnObjects() {
             if (frameCount % Math.max(50, 120 - (phase * 20)) === 0) {
-                const type = Math.random() > 0.4 ? 'fogueira' : 'cacto';
                 obstacles.push({
                     x: canvas.width,
-                    y: type === 'fogueira' ? 310 : 290,
-                    width: type === 'fogueira' ? 35 : 30,
-                    height: type === 'fogueira' ? 30 : 50,
-                    type: type
+                    y: 280,
+                    width: 35,
+                    height: 60,
+                    type: 'cacto',
+                    points: 10
                 });
             }
 
             if (frameCount % 80 === 0) {
                 collectibles.push({
                     x: canvas.width,
-                    y: 200 + (Math.random() * 60 - 30),
+                    y: 130 + (Math.random() * 50),
                     width: 25,
-                    height: 25
+                    height: 25,
+                    points: 15
                 });
             }
         }
@@ -473,38 +502,82 @@
                 player.x += player.speed;
                 player.facing = 'right';
             }
-            if (player.x < 20) player.x = 20;
-            if (player.x > canvas.width - 60) player.x = canvas.width - 60;
+            if (player.x < 10) player.x = 10;
+            if (player.x > canvas.width - 55) player.x = canvas.width - 55;
 
             player.vy += player.gravity;
             player.y += player.vy;
-            if (player.y > 270) {
-                player.y = 270;
+            if (player.y > 260) {
+                player.y = 260;
                 player.vy = 0;
                 player.isJumping = false;
+                player.canDoubleJump = false;
             }
 
-            if (score >= 20 && phase === 1) { phase = 2; gameSpeed = 6; }
-            else if (score >= 40 && phase === 2) { phase = 3; gameSpeed = 8; }
-            else if (score >= 60 && phase === 3) {
+            if (score >= 1000 && score < 1500 && phase === 1) { phase = 2; gameSpeed = 6; }
+            else if (score >= 1500 && score < 2000 && phase === 2) { phase = 3; gameSpeed = 8; }
+            else if (score >= 2000 && phase === 3) {
                 gameState = 'WIN';
                 document.getElementById('win-screen').classList.remove('hidden');
             }
 
             spawnObjects();
 
+            // Atualização e colisão de Tiros com Cactos
             for (let i = bullets.length - 1; i >= 0; i--) {
                 bullets[i].x += bullets[i].vx;
-                if (bullets[i].x > canvas.width || bullets[i].x < 0) bullets.splice(i, 1);
+                
+                // Verificar colisão do tiro com cactos
+                let bulletHit = false;
+                for (let j = obstacles.length - 1; j >= 0; j--) {
+                    let obs = obstacles[j];
+                    if (
+                        bullets[i] &&
+                        bullets[i].x < obs.x + obs.width &&
+                        bullets[i].x + bullets[i].width > obs.x &&
+                        bullets[i].y < obs.y + obs.height &&
+                        bullets[i].y + bullets[i].height > obs.y
+                    ) {
+                        // Destruir cacto com tiro e adicionar 10 pontos
+                        score += 10;
+                        obstacles.splice(j, 1);
+                        bulletHit = true;
+                        soundEffects.collect();
+                        updateHUD();
+                        break;
+                    }
+                }
+
+                if (bulletHit || (bullets[i] && (bullets[i].x > canvas.width || bullets[i].x < 0))) {
+                    bullets.splice(i, 1);
+                }
             }
 
+            // Atualização e colisão de Granadas com Cactos
             for (let i = grenades.length - 1; i >= 0; i--) {
                 grenades[i].vy += grenades[i].gravity;
                 grenades[i].x += grenades[i].vx;
                 grenades[i].y += grenades[i].vy;
-                if (grenades[i].y > 330) {
+
+                if (grenades[i].y > 320) {
                     soundEffects.explosion();
-                    obstacles = obstacles.filter(obs => Math.abs(obs.x - grenades[i].x) > 80);
+                    
+                    // Verificar cactos na área da explosão da granada
+                    let destroyedCount = 0;
+                    obstacles = obstacles.filter(obs => {
+                        let inRange = Math.abs(obs.x - grenades[i].x) <= 80;
+                        if (inRange) {
+                            destroyedCount++;
+                        }
+                        return !inRange;
+                    });
+
+                    // Adicionar 10 pontos para cada cacto destruído pela granada
+                    if (destroyedCount > 0) {
+                        score += destroyedCount * 10;
+                        updateHUD();
+                    }
+
                     grenades.splice(i, 1);
                 }
             }
@@ -519,8 +592,8 @@
                     player.y + player.height > obstacles[i].y
                 ) {
                     lives--;
+                    soundEffects.explosion();
                     obstacles.splice(i, 1);
-                    soundEffects.explosion(); // Som de dano/impacto
                     updateHUD();
                     if (lives <= 0) {
                         gameState = 'GAMEOVER';
@@ -542,7 +615,7 @@
                     player.y < collectibles[i].y + collectibles[i].height &&
                     player.y + player.height > collectibles[i].y
                 ) {
-                    score += 2;
+                    score += collectibles[i].points;
                     collectibles.splice(i, 1);
                     soundEffects.collect();
                     updateHUD();
@@ -573,38 +646,29 @@
         }
 
         function drawPlayer() {
-    if (playerImg.complete && playerImg.naturalHeight !== 0) {
-        // Se a imagem carregou com sucesso, desenha ela na posição do jogador
-        ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
-    } else {
-        // Fallback gráfico caso a imagem falhe (desenho retangular básico de segurança)
-        ctx.fillStyle = '#78350f';
-        ctx.fillRect(player.x, player.y, player.width, player.height);
-    }
-}
+            ctx.fillStyle = '#d97706'; 
+            ctx.fillRect(player.x + 10, player.y + 25, 25, 45);
+            
+            ctx.fillStyle = '#fde047';
+            ctx.fillRect(player.x + 12, player.y + 8, 20, 20);
 
-       
+            ctx.fillStyle = '#581c87';
+            ctx.fillRect(player.x + 6, player.y + 2, 32, 8);
+            ctx.fillRect(player.x + 2, player.y + 6, 40, 3);
+
+            ctx.fillStyle = '#eab308';
+            ctx.fillRect(player.x + 20, player.y + 4, 4, 4);
+        }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawBackground();
 
             obstacles.forEach(obs => {
-                if (obs.type === 'fogueira') {
-                    ctx.fillStyle = '#ea580c';
-                    ctx.fillRect(obs.x + 5, obs.y + 12, 25, 18);
-                    ctx.fillStyle = '#facc15';
-                    ctx.beginPath();
-                    ctx.moveTo(obs.x + 5, obs.y + 12);
-                    ctx.lineTo(obs.x + 17, obs.y - 8);
-                    ctx.lineTo(obs.x + 30, obs.y + 12);
-                    ctx.fill();
-                } else {
-                    ctx.fillStyle = '#15803d';
-                    ctx.fillRect(obs.x + 8, obs.y, 14, 50);
-                    ctx.fillRect(obs.x + 2, obs.y + 18, 8, 8);
-                    ctx.fillRect(obs.x + 20, obs.y + 12, 8, 8);
-                }
+                ctx.fillStyle = '#15803d';
+                ctx.fillRect(obs.x + 10, obs.y, 15, 60);
+                ctx.fillRect(obs.x + 2, obs.y + 20, 10, 8);
+                ctx.fillRect(obs.x + 23, obs.y + 12, 10, 8);
             });
 
             collectibles.forEach(col => {
