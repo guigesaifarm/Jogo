@@ -78,3 +78,85 @@
         }
 
         .screen-overlay p {
+            color: #cbd5e1;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            max-width: 500px;
+        }
+
+        .btn {
+            background-color: #22c55e;
+            color: #0f172a;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.1s;
+        }
+
+        .btn:hover {
+            background-color: #16a34a;
+            transform: scale(1.05);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .mobile-controls {
+            display: flex;
+            justify-content: space-between;
+            width: 800px;
+            background: rgba(30, 41, 59, 0.5);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(234, 179, 8, 0.3);
+        }
+
+        .control-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .ctrl-btn {
+            background: #eab308;
+            border: none;
+            color: #0f172a;
+            font-size: 1.3rem;
+            font-weight: bold;
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: background 0.1s, transform 0.1s;
+        }
+
+        .ctrl-btn:active {
+            background: #ca8a04;
+            transform: scale(0.92);
+        }
+
+        .action-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .ctrl-btn.action {
+            background: #ef4444;
+            color: #fff;
+            width: 80px;
+            font-size: 0.95rem;
+            border-radius: 8px;
+        }
+
+        .ctrl-btn.action:active {
+            background: #dc2626;
+        }
+    </style>
