@@ -213,6 +213,9 @@
     </div>
 
     <script>
+       const playerImg = new Image();
+         playerImg.src = 'data:image/png;base64,codornaparado.png';
+        
         // Sistema de Áudio Sintetizado (Web Audio API)
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -570,25 +573,17 @@
         }
 
         function drawPlayer() {
-            ctx.fillStyle = '#78350f';
-            ctx.fillRect(player.x + 10, player.y + 25, 25, 30);
+    if (playerImg.complete && playerImg.naturalHeight !== 0) {
+        // Se a imagem carregou com sucesso, desenha ela na posição do jogador
+        ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+    } else {
+        // Fallback gráfico caso a imagem falhe (desenho retangular básico de segurança)
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
+}
 
-            ctx.fillStyle = '#b91c1c';
-            ctx.fillRect(player.x + 15, player.y + 55, 15, 15);
-
-            ctx.fillStyle = '#f59e0b';
-            ctx.fillRect(player.x + 12, player.y + 10, 20, 18);
-
-            ctx.fillStyle = '#292524';
-            ctx.beginPath();
-            ctx.moveTo(player.x + 2, player.y + 12);
-            ctx.lineTo(player.x + 42, player.y + 12);
-            ctx.lineTo(player.x + 22, player.y - 4);
-            ctx.fill();
-
-            ctx.fillStyle = '#1c1917';
-            ctx.fillRect(player.x + 14, player.y + 22, 16, 5);
-        }
+       
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
