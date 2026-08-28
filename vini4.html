@@ -263,10 +263,10 @@
 
         // Background Palmas (estáticas no cenário decorativo)
         let backgroundPalmas = [
-            { x: 100, y: 285, width: 45, height: 55 },
-            { x: 300, y: 290, width: 40, height: 50 },
-            { x: 550, y: 282, width: 50, height: 58 },
-            { x: 720, y: 288, width: 42, height: 52 }
+            { x: 100, y: 285, width: 50, height: 56 },
+            { x: 300, y: 290, width: 51, height: 52 },
+            { x: 550, y: 282, width: 52, height: 59 },
+            { x: 720, y: 288, width: 48, height: 54 }
         ];
 
         let actionTimer = null;
@@ -548,7 +548,7 @@
             if (frameCount % Math.max(55, 120 - (phase * 20)) === 0) {
                 let heights = [45, 55, 65, 75]; // Alturas seguras que o salto duplo alcança perfeitamente
                 let h = heights[Math.floor(Math.random() * heights.length)];
-                let w = Math.floor(h * 0.55); // Largura proporcional
+                let w = Math.floor(h * 0.65); // Largura proporcional
                 obstacles.push({
                     x: canvas.width,
                     y: 340 - h,
@@ -568,8 +568,8 @@
                     collectibles.push({
                         x: canvas.width,
                         y: randomY,
-                        width: 32,
-                        height: 42,
+                        width: 45,
+                        height: 55,
                         type: 'balloon',
                         img: balloonImages[bIndex],
                         points: 20
