@@ -507,7 +507,7 @@
             lives = 3;
             score = (phase === 2) ? 1000 : (phase === 3 ? 1500 : 0);
             player.x = 100;
-            player.y = 228;
+            player.y = 200;
             obstacles = [];
             collectibles = [];
             bullets = [];
@@ -524,7 +524,7 @@
             phase = 1;
             gameSpeed = 4;
             player.x = 100;
-            player.y = 228;
+            player.y = 200;
             player.vy = 0;
             player.isJumping = false;
             player.canDoubleJump = false;
@@ -546,7 +546,7 @@
         function spawnObjects() {
             // Cactos variados em tamanho, mantidos na altura segura para pulo/duplo pulo
             if (frameCount % Math.max(55, 120 - (phase * 20)) === 0) {
-                let heights = [45, 55, 65, 75]; // Alturas seguras que o salto duplo alcança perfeitamente
+                let heights = [50, 55, 65, 75]; // Alturas seguras que o salto duplo alcança perfeitamente
                 let h = heights[Math.floor(Math.random() * heights.length)];
                 let w = Math.floor(h * 0.65); // Largura proporcional
                 obstacles.push({
@@ -561,15 +561,15 @@
             // Bandeiras e Balões alternados em alturas aleatórias acima do personagem
             if (frameCount % 75 === 0) {
                 let isBalloon = Math.random() > 0.5;
-                let randomY = 100 + Math.random() * 120; // Altura aleatória acima do chão, acessível por pulos
+                let randomY = 110 + Math.random() * 120; // Altura aleatória acima do chão, acessível por pulos
 
                 if (isBalloon) {
                     let bIndex = Math.floor(Math.random() * balloonImages.length);
                     collectibles.push({
                         x: canvas.width,
                         y: randomY,
-                        width: 50,
-                        height: 62,
+                        width: 52,
+                        height: 64,
                         type: 'balloon',
                         img: balloonImages[bIndex],
                         points: 20
@@ -607,8 +607,8 @@
             player.vy += player.gravity;
             player.y += player.vy;
             
-            if (player.y > 223) {
-                player.y = 228;
+            if (player.y > 200) {
+                player.y = 200;
                 player.vy = 0;
                 if (player.isJumping) {
                     player.isJumping = false;
