@@ -378,7 +378,7 @@
 
         const player = {
             x: 100,
-            y: 223,
+            y: 228,
             width: 68,
             height: 120,
             vy: 0,
@@ -457,7 +457,7 @@
             if (gameState !== 'PLAYING') return;
             bullets.push({
                 x: player.facing === 'right' ? player.x + player.width : player.x - 15,
-                y: player.y + 40,
+                y: player.y + 30,
                 vx: player.facing === 'right' ? 10 : -10,
                 width: 12,
                 height: 4
@@ -507,7 +507,7 @@
             lives = 3;
             score = (phase === 2) ? 1000 : (phase === 3 ? 1500 : 0);
             player.x = 100;
-            player.y = 223;
+            player.y = 228;
             obstacles = [];
             collectibles = [];
             bullets = [];
@@ -524,7 +524,7 @@
             phase = 1;
             gameSpeed = 4;
             player.x = 100;
-            player.y = 223;
+            player.y = 228;
             player.vy = 0;
             player.isJumping = false;
             player.canDoubleJump = false;
@@ -568,8 +568,8 @@
                     collectibles.push({
                         x: canvas.width,
                         y: randomY,
-                        width: 45,
-                        height: 55,
+                        width: 50,
+                        height: 62,
                         type: 'balloon',
                         img: balloonImages[bIndex],
                         points: 20
@@ -608,7 +608,7 @@
             player.y += player.vy;
             
             if (player.y > 223) {
-                player.y = 223;
+                player.y = 228;
                 player.vy = 0;
                 if (player.isJumping) {
                     player.isJumping = false;
