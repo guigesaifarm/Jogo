@@ -378,7 +378,7 @@
 
         const player = {
             x: 100,
-            y: 228,
+            y: 240,
             width: 68,
             height: 120,
             vy: 0,
@@ -457,7 +457,7 @@
             if (gameState !== 'PLAYING') return;
             bullets.push({
                 x: player.facing === 'right' ? player.x + player.width : player.x - 15,
-                y: player.y + 30,
+                y: player.y + 40,
                 vx: player.facing === 'right' ? 10 : -10,
                 width: 12,
                 height: 4
@@ -507,7 +507,7 @@
             lives = 3;
             score = (phase === 2) ? 1000 : (phase === 3 ? 1500 : 0);
             player.x = 100;
-            player.y = 200;
+            player.y = 240;
             obstacles = [];
             collectibles = [];
             bullets = [];
@@ -524,7 +524,7 @@
             phase = 1;
             gameSpeed = 4;
             player.x = 100;
-            player.y = 200;
+            player.y = 240;
             player.vy = 0;
             player.isJumping = false;
             player.canDoubleJump = false;
@@ -561,7 +561,7 @@
             // Bandeiras e Balões alternados em alturas aleatórias acima do personagem
             if (frameCount % 75 === 0) {
                 let isBalloon = Math.random() > 0.5;
-                let randomY = 110 + Math.random() * 120; // Altura aleatória acima do chão, acessível por pulos
+                let randomY = 100 + Math.random() * 120; // Altura aleatória acima do chão, acessível por pulos
 
                 if (isBalloon) {
                     let bIndex = Math.floor(Math.random() * balloonImages.length);
@@ -607,8 +607,8 @@
             player.vy += player.gravity;
             player.y += player.vy;
             
-            if (player.y > 200) {
-                player.y = 200;
+            if (player.y > 240) {
+                player.y = 240;
                 player.vy = 0;
                 if (player.isJumping) {
                     player.isJumping = false;
