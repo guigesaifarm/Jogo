@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aventura no Agreste: O Resgate do São João</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: #1a0f07;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: auto;
+            padding: 10px;
+        }
+
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 400px;
+            border: 4px solid #eab308;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(234, 179, 8, 0.3);
+            background: #2b1307;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #player-gif {
+            position: absolute;
+            display: none;
+            pointer-events: none;
+            z-index: 5;
+            object-fit: contain;
+            background: transparent !important;
+        }
+
+        .ui-panel {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .screen-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .screen-overlay h1 {
+            color: #eab308;
+            font-size: 2.3rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .screen-overlay p {
+            color: #cbd5e1;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            max-width: 500px;
+        }
+
+        .btn {
+            background-color: #22c55e;
+            color: #0f172a;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.1s;
+        }
+
+        .btn:hover {
+            background-color: #16a34a;
+            transform: scale(1.05);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .mobile-controls {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 800px;
+            background: rgba(30, 41, 59, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid rgba(234, 179, 8, 0.5);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .ctrl-btn {
+            background: #eab308;
+            border: none;
+            color: #0f172a;
+            font-size: 1.4rem;
+            font-weight: bold;
+            width: 55px;
+            height: 55px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: background 0.1s, transform 0.1s;
+        }
+
+        .ctrl-btn:active {
+            background: #ca8a04;
+            transform: scale(0.92);
+        }
+
+        .action-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .ctrl-btn.action {
+            background: #ef4444;
+            color: #fff;
+            width: 75px;
+            font-size: 0.95rem;
+        }
+
+        .ctrl-btn.action:active {
+            background: #dc2626;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-wrapper">
+        <div class="game-container">
+            <img id="player-gif" src="vini.gif" alt="Codorna">
+
+            <div class="ui-panel">
+                <span id="hud-score">Pontos: 0</span>
+                <span id="hud-phase">Fase: 1</span>
+                <span id="hud-lives">Vidas: 3</span>
+            </div>
+
+            <div id="start-screen" class="screen-overlay">
+                <h1>Aventura no Agreste</h1>
+                <p>Destrua os cactos variados com tiros e granadas, colete bandeiras e balões arretados!</p>
+                <button class="btn" onclick="startGame()">Iniciar Forró</button>
+            </div>
+
+            <div id="gameover-screen" class="screen-overlay hidden">
+                <h1>Oxente! Game Over</h1>
+                <p>A codorna não resistiu aos perigos do sertão.</p>
+                <button class="btn" onclick="restartGame()">Reiniciar Fase</button>
+            </div>
+
+            <div id="win-screen" class="screen-overlay hidden">
+                <h1>Arretado! Campeão!</h1>
+                <p>Você concluiu todas as fases com maestria!</p>
+                <button class="btn" onclick="restartGame()">Jogar Novamente</button>
+            </div>
+
+            <canvas id="gameCanvas" width="800" height="400"></canvas>
+        </div>
+
+        <div class="mobile-controls">
+            <div class="control-group">
+                <button class="ctrl-btn" id="btn-left">◀</button>
+                <button class="ctrl-btn" id="btn-right">▶</button>
+                <button class="ctrl-btn" id="btn-up">▲</button>
+            </div>
+            <div class="action-group">
+                <button class="ctrl-btn action" id="btn-shoot">Tiro</button>
+                <button class="ctrl-btn action" id="btn-grenade">Granada</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const playerGif = document.getElementById('player-gif');
+
+        const playerImages = {
+            default: "vini.gif",
+            jump: "vinipulo.gif",
+            shoot: "vinitiro.gif",
+            grenade: "vinigranada.gif",
+            die: "vinimorte.gif" 
+        };
+
+        // Carregamento de Imagens Externas
+        const cactoImg = new Image();
+        cactoImg.src = "cacto.png";
+
+        const palmaImg = new Image();
+        palmaImg.src = "palma.png";
+
+        // Novas Imagens de Luas
+        const meiaLuaImg = new Image();
+        meiaLuaImg.src = "meialua.png";
+
+        const luaCheiaImg = new Image();
+        luaCheiaImg.src = "luacheia.png";
+
+        const flagSources = ["bandeira1.png", "bandeira2.png", "bandeira3.png", "bandeira4.png"];
+        const flagImages = flagSources.map(src => {
+            let img = new Image();
+            img.src = src;
+            return img;
+        });
+
+        const balloonSources = ["balão1.gif", "balão2.gif"];
+        const balloonImages = balloonSources.map(src => {
+            let img = new Image();
+            img.src = src;
+            return img;
+        });
+
+        let backgroundPalmas = [
+            { x: 100, y: 285, width: 50, height: 56 },
+            { x: 300, y: 290, width: 51, height: 52 },
+            { x: 550, y: 282, width: 52, height: 59 },
+            { x: 720, y: 288, width: 48, height: 54 }
+        ];
+
+        let actionTimer = null;
+        let currentImageKey = 'default';
+
+        const soundEffects = {
+            jump: () => {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15);
+            },
+            doubleJump: () => {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.2);
+            },
+            shoot: () => {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            },
+            grenadeThrow: () => {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.25);
+            },
+            explosion: () => {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const bufferSize = audioCtx.sampleRate * 0.4;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(800, audioCtx.currentTime);
+                filter.frequency.linearRampToValueAtTime(50, audioCtx.currentTime + 0.4);
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                noise.start();
+            },
+            collect: () => {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.2);
+            }
+        };
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let gameState = 'START';
+        let score = 0;
+        let lives = 3;
+        let phase = 1;
+        let gameSpeed = 4;
+
+        const player = {
+            x: 100,
+            y: 240,
+            width: 68,
+            height: 120,
+            vy: 0,
+            speed: 5,
+            gravity: 0.75,
+            jumpForce: -12,
+            doubleJumpForce: -11,
+            isJumping: false,
+            canDoubleJump: false,
+            facing: 'right'
+        };
+
+        let obstacles = [];      
+        let collectibles = [];   
+        let bullets = [];
+        let grenades = [];
+        let frameCount = 0;
+
+        const keys = { left: false, right: false };
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+            if (e.code === 'ArrowUp' || e.code === 'Space' || e.code === 'KeyW') {
+                e.preventDefault();
+                jump();
+            }
+            if (e.code === 'KeyX' || e.code === 'KeyJ') shootBullet();
+            if (e.code === 'KeyC' || e.code === 'KeyK') throwGrenade();
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+        });
+
+        const bindControl = (id, actionDown, actionUp) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('mousedown', actionDown);
+            el.addEventListener('mouseup', actionUp);
+            el.addEventListener('mouseleave', actionUp);
+            el.addEventListener('touchstart', (e) => { e.preventDefault(); actionDown(); });
+            el.addEventListener('touchend', (e) => { e.preventDefault(); actionUp(); });
+        };
+
+        bindControl('btn-left', () => keys.left = true, () => keys.left = false);
+        bindControl('btn-right', () => keys.right = true, () => keys.right = false);
+        document.getElementById('btn-up').addEventListener('click', jump);
+        document.getElementById('btn-shoot').addEventListener('click', shootBullet);
+        document.getElementById('btn-grenade').addEventListener('click', throwGrenade);
+
+        function changePlayerImage(imgKey) {
+            currentImageKey = imgKey;
+            playerGif.src = playerImages[imgKey];
+        }
+
+        function jump() {
+            if (gameState !== 'PLAYING') return;
+
+            if (!player.isJumping) {
+                player.vy = player.jumpForce;
+                player.isJumping = true;
+                player.canDoubleJump = true;
+                changePlayerImage('jump');
+                soundEffects.jump();
+            } else if (player.canDoubleJump) {
+                player.vy = player.doubleJumpForce;
+                player.canDoubleJump = false;
+                changePlayerImage('jump');
+                soundEffects.doubleJump();
+            }
+        }
+
+        function shootBullet() {
+            if (gameState !== 'PLAYING') return;
+            bullets.push({
+                x: player.facing === 'right' ? player.x + player.width : player.x - 15,
+                y: player.y + 40,
+                vx: player.facing === 'right' ? 10 : -10,
+                width: 12,
+                height: 4
+            });
+            changePlayerImage('shoot');
+            clearTimeout(actionTimer);
+            actionTimer = setTimeout(() => {
+                if (gameState === 'PLAYING') {
+                    changePlayerImage(player.isJumping ? 'jump' : 'default');
+                }
+            }, 300);
+            soundEffects.shoot();
+        }
+
+        function throwGrenade() {
+            if (gameState !== 'PLAYING') return;
+            grenades.push({
+                x: player.x + 30,
+                y: player.y + 20,
+                vx: player.facing === 'right' ? 6 : -6,
+                vy: -8,
+                gravity: 0.5,
+                radius: 8
+            });
+            changePlayerImage('grenade');
+            clearTimeout(actionTimer);
+            actionTimer = setTimeout(() => {
+                if (gameState === 'PLAYING') {
+                    changePlayerImage(player.isJumping ? 'jump' : 'default');
+                }
+            }, 400);
+            soundEffects.grenadeThrow();
+        }
+
+        function startGame() {
+            document.getElementById('start-screen').classList.add('hidden');
+            playerGif.style.display = 'block';
+            resetValues();
+            gameState = 'PLAYING';
+            loop();
+        }
+
+        function restartGame() {
+            document.getElementById('gameover-screen').classList.add('hidden');
+            document.getElementById('win-screen').classList.add('hidden');
+            playerGif.style.display = 'block';
+            lives = 3;
+            score = (phase === 2) ? 1000 : (phase === 3 ? 1500 : 0);
+            player.x = 100;
+            player.y = 240;
+            obstacles = [];
+            collectibles = [];
+            bullets = [];
+            grenades = [];
+            changePlayerImage('default');
+            gameState = 'PLAYING';
+            updateHUD();
+            loop();
+        }
+
+        function resetValues() {
+            score = 0;
+            lives = 3;
+            phase = 1;
+            gameSpeed = 4;
+            player.x = 100;
+            player.y = 240;
+            player.vy = 0;
+            player.isJumping = false;
+            player.canDoubleJump = false;
+            obstacles = [];
+            collectibles = [];
+            bullets = [];
+            grenades = [];
+            frameCount = 0;
+            changePlayerImage('default');
+            updateHUD();
+        }
+
+        function updateHUD() {
+            document.getElementById('hud-score').innerText = `Pontos: ${score}`;
+            document.getElementById('hud-phase').innerText = `Fase: ${phase}`;
+            document.getElementById('hud-lives').innerText = `Vidas: ${lives}`;
+        }
+
+        function spawnObjects() {
+            if (frameCount % Math.max(55, 120 - (phase * 20)) === 0) {
+                let heights = [50, 55, 65, 75]; 
+                let h = heights[Math.floor(Math.random() * heights.length)];
+                let w = Math.floor(h * 0.65); 
+                obstacles.push({
+                    x: canvas.width,
+                    y: 340 - h,
+                    width: w,
+                    height: h,
+                    points: 10
+                });
+            }
+
+            if (frameCount % 75 === 0) {
+                let isBalloon = Math.random() > 0.5;
+                let randomY = 100 + Math.random() * 120; 
+
+                if (isBalloon) {
+                    let bIndex = Math.floor(Math.random() * balloonImages.length);
+                    collectibles.push({
+                        x: canvas.width,
+                        y: randomY,
+                        width: 52,
+                        height: 64,
+                        type: 'balloon',
+                        img: balloonImages[bIndex],
+                        points: 20
+                    });
+                } else {
+                    let fIndex = Math.floor(Math.random() * flagImages.length);
+                    collectibles.push({
+                        x: canvas.width,
+                        y: randomY,
+                        width: 30,
+                        height: 35,
+                        type: 'flag',
+                        img: flagImages[fIndex],
+                        points: 15
+                    });
+                }
+            }
+        }
+
+        function update() {
+            if (gameState !== 'PLAYING') return;
+            frameCount++;
+
+            if (keys.left) {
+                player.x -= player.speed;
+                player.facing = 'left';
+            }
+            if (keys.right) {
+                player.x += player.speed;
+                player.facing = 'right';
+            }
+            if (player.x < 10) player.x = 10;
+            if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+
+            player.vy += player.gravity;
+            player.y += player.vy;
+            
+            if (player.y > 240) {
+                player.y = 240;
+                player.vy = 0;
+                if (player.isJumping) {
+                    player.isJumping = false;
+                    player.canDoubleJump = false;
+                    if (currentImageKey !== 'shoot' && currentImageKey !== 'grenade') {
+                        changePlayerImage('default');
+                    }
+                }
+            }
+
+            playerGif.style.left = player.x + 'px';
+            playerGif.style.top = player.y + 'px';
+            playerGif.style.width = player.width + 'px';
+            playerGif.style.height = player.height + 'px';
+            playerGif.style.transform = player.facing === 'left' ? 'scaleX(-1)' : 'scaleX(1)';
+
+            backgroundPalmas.forEach(p => {
+                p.x -= gameSpeed * 0.5;
+                if (p.x + p.width < 0) {
+                    p.x = canvas.width + Math.random() * 100;
+                }
+            });
+
+            if (score >= 1000 && score < 1500 && phase === 1) { phase = 2; gameSpeed = 6; }
+            else if (score >= 1500 && score < 2000 && phase === 2) { phase = 3; gameSpeed = 8; }
+            else if (score >= 2000 && phase === 3) {
+                gameState = 'WIN';
+                playerGif.style.display = 'none';
+                document.getElementById('win-screen').classList.remove('hidden');
+            }
+
+            spawnObjects();
+
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                bullets[i].x += bullets[i].vx;
+                
+                let bulletHit = false;
+                for (let j = obstacles.length - 1; j >= 0; j--) {
+                    let obs = obstacles[j];
+                    if (
+                        bullets[i] &&
+                        bullets[i].x < obs.x + obs.width &&
+                        bullets[i].x + bullets[i].width > obs.x &&
+                        bullets[i].y < obs.y + obs.height &&
+                        bullets[i].y + bullets[i].height > obs.y
+                    ) {
+                        score += 10;
+                        obstacles.splice(j, 1);
+                        bulletHit = true;
+                        soundEffects.collect();
+                        updateHUD();
+                        break;
+                    }
+                }
+
+                if (bulletHit || (bullets[i] && (bullets[i].x > canvas.width || bullets[i].x < 0))) {
+                    bullets.splice(i, 1);
+                }
+            }
+
+            for (let i = grenades.length - 1; i >= 0; i--) {
+                grenades[i].vy += grenades[i].gravity;
+                grenades[i].x += grenades[i].vx;
+                grenades[i].y += grenades[i].vy;
+
+                if (grenades[i].y > 320) {
+                    soundEffects.explosion();
+                    
+                    let destroyedCount = 0;
+                    obstacles = obstacles.filter(obs => {
+                        let inRange = Math.abs(obs.x - grenades[i].x) <= 80;
+                        if (inRange) {
+                            destroyedCount++;
+                        }
+                        return !inRange;
+                    });
+
+                    if (destroyedCount > 0) {
+                        score += destroyedCount * 10;
+                        updateHUD();
+                    }
+
+                    grenades.splice(i, 1);
+                }
+            }
+
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                obstacles[i].x -= gameSpeed;
+
+                if (
+                    player.x < obstacles[i].x + obstacles[i].width &&
+                    player.x + player.width > obstacles[i].x &&
+                    player.y < obstacles[i].y + obstacles[i].height &&
+                    player.y + player.height > obstacles[i].y
+                ) {
+                    lives--;
+                    soundEffects.explosion();
+                    obstacles.splice(i, 1);
+                    updateHUD();
+                    if (lives <= 0) {
+                        gameState = 'GAMEOVER';
+                        changePlayerImage('die');
+                        setTimeout(() => {
+                            playerGif.style.display = 'none';
+                            document.getElementById('gameover-screen').classList.remove('hidden');
+                        }, 600);
+                    }
+                    continue;
+                }
+
+                if (obstacles[i] && obstacles[i].x + obstacles[i].width < 0) {
+                    obstacles.splice(i, 1);
+                }
+            }
+
+            for (let i = collectibles.length - 1; i >= 0; i--) {
+                collectibles[i].x -= gameSpeed;
+                if (
+                    player.x < collectibles[i].x + collectibles[i].width &&
+                    player.x + player.width > collectibles[i].x &&
+                    player.y < collectibles[i].y + collectibles[i].height &&
+                    player.y + player.height > collectibles[i].y
+                ) {
+                    score += collectibles[i].points;
+                    collectibles.splice(i, 1);
+                    soundEffects.collect();
+                    updateHUD();
+                    continue;
+                }
+                if (collectibles[i] && collectibles[i].x + collectibles[i].width < 0) {
+                    collectibles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawBackground() {
+            // Cor do fundo do céu baseada na fase
+            ctx.fillStyle = phase === 1 ? '#7c2d12' : (phase === 2 ? '#0f172a' : '#311026');
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // --- DESENHAR A LUA DE ACORDO COM A FASE ---
+            if (phase === 1) {
+                // Fase 1: Meia Lua
+                if (meiaLuaImg.complete && meiaLuaImg.naturalHeight !== 0) {
+                    ctx.drawImage(meiaLuaImg, 620, 50, 70, 70);
+                }
+            } else {
+                // Fase 2 e 3: Lua Cheia
+                if (luaCheiaImg.complete && luaCheiaImg.naturalHeight !== 0) {
+                    ctx.drawImage(luaCheiaImg, 620, 50, 70, 70);
+                }
+            }
+
+            // Desenhar as palmas menores no fundo
+            backgroundPalmas.forEach(p => {
+                if (palmaImg.complete && palmaImg.naturalHeight !== 0) {
+                    ctx.drawImage(palmaImg, p.x, p.y, p.width, p.height);
+                } else {
+                    ctx.fillStyle = '#065f46';
+                    ctx.fillRect(p.x, p.y, p.width, p.height);
+                }
+            });
+
+            // Bandeirinhas de São João no topo
+            ctx.strokeStyle = '#eab308';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, 30);
+            for (let x = 40; x < canvas.width + 40; x += 60) {
+                ctx.lineTo(x, 45);
+                ctx.lineTo(x + 30, 30);
+            }
+            ctx.stroke();
+
+            // Chão
+            ctx.fillStyle = phase === 1 ? '#b45309' : (phase === 2 ? '#451a03' : '#701a75');
+            ctx.fillRect(0, 340, canvas.width, 60);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackground();
+
+            obstacles.forEach(obs => {
+                if (cactoImg.complete && cactoImg.naturalHeight !== 0) {
+                    ctx.drawImage(cactoImg, obs.x, obs.y, obs.width, obs.height);
+                } else {
+                    ctx.fillStyle = '#15803d';
+                    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                }
+            });
+
+            collectibles.forEach(col => {
+                if (col.img && col.img.complete && col.img.naturalHeight !== 0) {
+                    ctx.drawImage(col.img, col.x, col.y, col.width, col.height);
+                } else {
+                    ctx.fillStyle = col.type === 'balloon' ? '#ef4444' : '#3b82f6';
+                    ctx.fillRect(col.x, col.y, col.width, col.height);
+                }
+            });
+
+            bullets.forEach(b => {
+                ctx.fillStyle = '#facc15';
+                ctx.fillRect(b.x, b.y, b.width, b.height);
+            });
+
+            grenades.forEach(g => {
+                ctx.fillStyle = '#111827';
+                ctx.beginPath();
+                ctx.arc(g.x, g.y, g.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function loop() {
+            update();
+            draw();
+            if (gameState === 'PLAYING') {
+                requestAnimationFrame(loop);
+            }
+        }
+    </script>
+</body>
+</html>
