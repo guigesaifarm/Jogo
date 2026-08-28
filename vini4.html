@@ -378,7 +378,7 @@
 
         const player = {
             x: 100,
-            y: 220,
+            y: 223,
             width: 68,
             height: 120,
             vy: 0,
@@ -507,7 +507,7 @@
             lives = 3;
             score = (phase === 2) ? 1000 : (phase === 3 ? 1500 : 0);
             player.x = 100;
-            player.y = 220;
+            player.y = 223;
             obstacles = [];
             collectibles = [];
             bullets = [];
@@ -524,7 +524,7 @@
             phase = 1;
             gameSpeed = 4;
             player.x = 100;
-            player.y = 220;
+            player.y = 223;
             player.vy = 0;
             player.isJumping = false;
             player.canDoubleJump = false;
@@ -607,8 +607,8 @@
             player.vy += player.gravity;
             player.y += player.vy;
             
-            if (player.y > 220) {
-                player.y = 220;
+            if (player.y > 223) {
+                player.y = 223;
                 player.vy = 0;
                 if (player.isJumping) {
                     player.isJumping = false;
